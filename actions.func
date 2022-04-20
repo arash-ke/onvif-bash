@@ -1,0 +1,378 @@
+#!/bin/bash
+
+function GetSystemDateAndTime {
+    action="http://www.onvif.org/ver10/device/wsdl/GetSystemDateAndTime"
+    
+    HEADER=$(getHeader)
+    CONTENT=$(eval "echo \"$(<$TEMPLATE_FOLDER/${ACTION}.xml)\"")
+
+    runCurl $action <<< $CONTENT | xmllint --format - | av_log
+
+    return $?
+}
+
+function GetProfiles {
+    action="http://www.onvif.org/ver10/media/wsdl/GetProfiles"
+    
+    HEADER=$(getHeader)
+    CONTENT=$(eval "echo \"$(<$TEMPLATE_FOLDER/${ACTION}.xml)\"")
+
+    v_log $CONTENT
+    s2_log
+    runCurl $action <<< $CONTENT | xmllint --format - | av_log
+
+    return $?
+}
+
+function AbsoluteMove {
+    action="http://www.onvif.org/ver20/ptz/wsdl/AbsoluteMove"
+    if [ -z "$PROFILE_TOKEN" ]; then
+        PROFILE_TOKEN=RTS
+    fi
+    if [ -z "$POSITION_X" ]; then
+        POSITION_X=0
+    fi
+    if [ -z "$POSITION_Y" ]; then
+        POSITION_Y=0
+    fi
+    if [ -z "$ZOOM_X" ]; then
+        ZOOM_X=0
+    fi
+
+    HEADER=$(getHeader)
+    CONTENT=$(eval "echo \"$(<$TEMPLATE_FOLDER/${ACTION}.xml)\"")
+    
+    show_xml "$CONTENT" | avv_log
+    s2_log
+    runCurl $action <<< $CONTENT | xmllint --format - | av_log
+
+    return $?
+}
+
+function RelativeMove {
+    action="http://www.onvif.org/ver20/ptz/wsdl/RelativeMove"
+    if [ -z "$PROFILE_TOKEN" ]; then
+        PROFILE_TOKEN=RTS
+    fi
+    if [ -z "$POSITION_X" ]; then
+        POSITION_X=0
+    fi
+    if [ -z "$POSITION_Y" ]; then
+        POSITION_Y=0
+    fi
+    if [ -z "$ZOOM_X" ]; then
+        ZOOM_X=0
+    fi
+
+    HEADER=$(getHeader)
+    CONTENT=$(eval "echo \"$(<$TEMPLATE_FOLDER/${ACTION}.xml)\"")
+    
+    show_xml "$CONTENT" | avv_log
+    s2_log
+    runCurl $action <<< $CONTENT | xmllint --format - | av_log
+
+    return $?
+}
+
+function ContinuousMove {
+    action="http://www.onvif.org/ver20/ptz/wsdl/ContinuousMove"
+    ACTION="ContinuousMove"
+    if [ -z "$PROFILE_TOKEN" ]; then
+        PROFILE_TOKEN=RTS
+    fi
+    if [ -z "$POSITION_X" ]; then
+        POSITION_X=0
+    fi
+    if [ -z "$POSITION_Y" ]; then
+        POSITION_Y=0
+    fi
+    if [ -z "$ZOOM_X" ]; then
+        ZOOM_X=0
+    fi
+    if [ -z "$TIMEOUT" ]; then
+        TIMEOUT=1
+    fi
+
+    HEADER=$(getHeader)
+    CONTENT=$(eval "echo \"$(<$TEMPLATE_FOLDER/${ACTION}.xml)\"")
+    
+    show_xml "$CONTENT" | avv_log
+    s2_log
+    runCurl $action <<< $CONTENT | xmllint --format - | av_log
+
+    return $?
+}
+function Stop {
+    action="http://www.onvif.org/ver20/ptz/wsdl/ContinuousMove"
+    ACTION="Stop"
+    
+    HEADER=$(getHeader)
+    CONTENT=$(eval "echo \"$(<$TEMPLATE_FOLDER/${ACTION}.xml)\"")
+    
+    show_xml "$CONTENT" | avv_log
+    s2_log
+    runCurl $action <<< $CONTENT | xmllint --format - | av_log
+
+    return $?
+}
+
+function MoveLeft {
+    if [ -z "$X_SPEED" ]; then
+        X_SPEED=0.1
+    fi
+    POSITION_X=-$X_SPEED
+    POSITION_Y=0
+    ZOOM_X=0
+    if [ -z "$x_delay" ]; then
+        x_delay=1
+    fi
+    t_log "Moving Left (Speed: $X_SPEED, Delay: $x_delay)"
+    ContinuousMove &
+    sleep $x_delay
+    s3_log
+    Stop
+}
+
+function MoveRight {
+    if [ -z "$X_SPEED" ]; then
+        X_SPEED=0.1
+    fi
+    POSITION_X=$X_SPEED
+    POSITION_Y=0
+    ZOOM_X=0
+    if [ -z "$x_delay" ]; then
+        x_delay=1
+    fi
+    t_log "Moving Right (Speed: $X_SPEED, Delay: $x_delay)"
+    ContinuousMove &
+    sleep $x_delay
+    s3_log
+    Stop
+}
+
+function MoveDown {
+    if [ -z "$Y_SPEED" ]; then
+        Y_SPEED=0.1
+    fi
+    POSITION_Y=-$Y_SPEED
+    if [ -z "$y_delay" ]; then
+        y_delay=1
+    fi
+    POSITION_X=0
+    ZOOM_X=0
+    t_log "Moving Down (Speed: $Y_SPEED, Delay: $y_delay)"
+    ContinuousMove &
+    sleep $y_delay
+    s3_log
+    Stop
+}
+
+function MoveUp {
+    if [ -z "$Y_SPEED" ]; then
+        Y_SPEED=0.1
+    fi
+    POSITION_Y=$Y_SPEED
+    POSITION_X=0
+    ZOOM_X=0
+    if [ -z "$y_delay" ]; then
+        y_delay=1
+    fi
+    t_log "Moving Up (Speed: $Y_SPEED, Delay: $y_delay)"
+    ContinuousMove &
+    sleep $y_delay
+    s3_log
+    Stop
+}
+
+function ZoomOut {
+    if [ -z "$Z_SPEED" ]; then
+        Z_SPEED=1
+    fi
+    ZOOM_X=-$Z_SPEED
+    POSITION_Y=0
+    POSITION_X=0
+    t_log "Zooming Out (Speed: $Z_SPEED)"
+    ContinuousMove
+}
+
+function ZoomIn {
+    if [ -z "$Z_SPEED" ]; then
+        Z_SPEED=1
+    fi
+    ZOOM_X=$Z_SPEED
+    POSITION_Y=0
+    POSITION_X=0
+    t_log "Zooming In (Speed: $Z_SPEED)"
+    ContinuousMove
+}
+
+function FLeft {
+    t_log "Going Full Left"
+    POSITION_Y=0
+    POSITION_X=-1
+    ZOOM_X=0
+    ContinuousMove
+}
+
+function FRight {
+    t_log "Going Full Right"
+    POSITION_Y=0
+    POSITION_X=1
+    ZOOM_X=0
+    ContinuousMove
+}
+
+function FUp {
+    t_log "Going Full Up"
+    POSITION_Y=1
+    POSITION_X=0
+    ZOOM_X=0
+    ContinuousMove
+}
+
+function FDown {
+    t_log "Going Full Down"
+    POSITION_Y=-1
+    POSITION_X=0
+    ZOOM_X=0
+    ContinuousMove
+}
+
+function TopLeft {
+    t_log "Going Top Left"
+    POSITION_Y=1
+    POSITION_X=-1
+    ZOOM_X=0
+    ContinuousMove
+}
+
+function TopRight {
+    t_log "Going Top Right"
+    POSITION_Y=1
+    POSITION_X=1
+    ZOOM_X=0
+    ContinuousMove
+}
+
+function BottomRight {
+    t_log "Going Bottom Right"
+    POSITION_Y=-1
+    POSITION_X=1
+    ZOOM_X=0
+    ContinuousMove
+}
+
+function BottomLeft {
+    t_log "Going Bottom Left"
+    POSITION_Y=-1
+    POSITION_X=-1
+    ZOOM_X=0
+    ContinuousMove
+}
+
+function Center {
+    
+    if [ -z "$grace" ]; then
+        grace=10
+    fi
+    if [ -z "$x_delay" ]; then
+        x_delay=2
+    fi
+    if [ -z "$y_delay" ]; then
+        y_delay=4
+    fi
+    TopLeft
+    t_log "Waiting for $grace second(s)"
+    sleep $grace
+    MoveDown
+    t_log "Waiting for $grace second(s)"
+    sleep $grace
+    MoveRight
+}
+
+function GetStatus {
+    action="http://www.onvif.org/ver20/ptz/wsdl/GetStatus"
+    if [ -z "$PROFILE_TOKEN" ]; then
+        PROFILE_TOKEN=RTS
+    fi
+
+    HEADER=$(getHeader)
+    CONTENT=$(eval "echo \"$(<$TEMPLATE_FOLDER/${ACTION}.xml)\"")
+
+    show_xml "$CONTENT" | avv_log
+    s2_log
+    runCurl $action <<< $CONTENT | xmllint --format - | av_log
+
+    return $?
+}
+
+function GotoHomePosition {
+    action="http://www.onvif.org/ver20/ptz/wsdl/GotoHomePosition"
+    if [ -z "$PROFILE_TOKEN" ]; then
+        PROFILE_TOKEN=RTS
+    fi
+
+    HEADER=$(getHeader)
+    CONTENT=$(eval "echo \"$(<$TEMPLATE_FOLDER/${ACTION}.xml)\"")
+    
+    show_xml "$CONTENT" | avv_log
+    s2_log
+    runCurl $action <<< $CONTENT | xmllint --format - | av_log
+
+    return $?
+}
+
+function GetConfiguration {
+    action="http://www.onvif.org/ver20/ptz/wsdl/GetConfiguration"
+    if [ -z "$PTZ_CONFIG" ]; then
+        PROFILE_TOKEN=RTS
+    fi
+
+    HEADER=$(getHeader)
+    CONTENT=$(eval "echo \"$(<$TEMPLATE_FOLDER/${ACTION}.xml)\"")
+    
+    show_xml "$CONTENT" | avv_log
+    s2_log
+    runCurl $action <<< $CONTENT | xmllint --format - | av_log
+
+    return $?
+}
+
+function GetConfigurations {
+    action="http://www.onvif.org/ver20/ptz/wsdl/GetConfigurations"
+    
+    HEADER=$(getHeader)
+    CONTENT=$(eval "echo \"$(<$TEMPLATE_FOLDER/${ACTION}.xml)\"")
+    
+    show_xml "$CONTENT" | avv_log
+    s2_log
+    runCurl $action <<< $CONTENT | xmllint --format - | av_log
+
+    return $?
+}
+
+function GetPresets {
+    action="http://www.onvif.org/ver20/ptz/wsdl/GetPresets"
+    
+    HEADER=$(getHeader)
+    CONTENT=$(eval "echo \"$(<$TEMPLATE_FOLDER/${ACTION}.xml)\"")
+    
+    show_xml "$CONTENT" | avv_log
+    s2_log
+    runCurl $action <<< $CONTENT | xmllint --format - | av_log
+
+    return $?
+}
+
+function GetServiceCapabilities {
+    action="http://www.onvif.org/ver20/ptz/wsdl/GetServiceCapabilities"
+    
+    HEADER=$(getHeader)
+    CONTENT=$(eval "echo \"$(<$TEMPLATE_FOLDER/${ACTION}.xml)\"")
+    
+    show_xml "$CONTENT" | avv_log
+    s2_log
+    runCurl $action <<< $CONTENT | xmllint --format - | av_log
+
+    return $?
+}

@@ -1,0 +1,62 @@
+#!/bin/bash
+###############################################################################
+#   Functions
+###############################################################################
+
+function getCurlCMD {
+    echo "curl -X POST ${SCHEMA}://${HOST}:${PORT}/$BASE_URL --header \"Content-Type: application/soap+xml;charset=utf-8\" $* -d @-"
+}
+
+function runCurl {
+    curl \
+        -X POST \
+        --header "Content-Type: application/soap+xml;charset=utf-8" \
+        --header "SOAP-Action: $1" \
+        -d @- \
+        --silent \
+        ${SCHEMA}://${HOST}:${PORT}/$BASE_URL
+}
+
+function getPasswordDigest {
+    created=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
+    #nonce="$(cat /dev/urandom | fold -w 20 | head -n 1)"
+    nonce="$(dd if=/dev/urandom count=20 bs=1 2>/dev/null | od -t d)"
+    digest=$(echo -n "${nonce}${created}${PASS}" | openssl sha1 -binary | base64)
+    
+    echo "Created: $created"
+    echo "Nonce: $(echo -n $nonce | base64)"
+    echo "Digest: $digest"
+}
+
+function getHeader {
+    digest=$(getPasswordDigest)
+    passDigest=$(echo "$digest" | grep Digest | cut -d" " -f2)
+    nonce=$(echo "$digest" | grep Nonce | cut -d" " -f2)
+    created=$(echo "$digest" | grep Created | cut -d" " -f2)
+
+    # sed -e "s/\%USER\%/$USER/" -e "s/%passDigest%/$passDigest/" -e "s/%nonce%/$nonce/" -e "s/%created%/$created/" $TEMPLATE_FOLDER/Header.xml
+    
+    eval "echo \"$(<$TEMPLATE_FOLDER/Header.xml)\""
+}
+
+function execute_template {
+    ACTION=$1
+    
+    soap_action="http://www.onvif.org/ver10/device/wsdl/${ACTION}"
+
+    if ! [ -z "$2" ]; then
+        soap_action=$2
+    fi
+    
+    HEADER=$(getHeader)
+    CONTENT=$(eval "echo \"$(<$TEMPLATE_FOLDER/${ACTION}.xml)\"")
+    log $CONTENT
+    s2_log
+    runCurl $action <<< $CONTENT | xmllint --format -
+
+    return $?
+}
+
+function show_xml {
+    echo $* | xmllint --format -
+}

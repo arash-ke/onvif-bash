@@ -1,0 +1,61 @@
+#!/bin/bash
+
+function t_log {
+    echo -e "$(date '+%Y-%m-%d %H:%M:%S'): $*" | tee -a $LOG_FILE
+}
+
+function s_log {
+    if [ $VERBOSE -ne 0 ]; then
+        echo '################################################################################' | tee -a $LOG_FILE
+    fi
+}
+
+function s2_log {
+    if [ $VERBOSE -ne 0 ]; then
+        echo '********************************************************************************' | tee -a $LOG_FILE
+    fi
+}
+
+function s3_log {
+    if [ $VERBOSE -ne 0 ]; then
+        echo '--------------------------------------------------------------------------------' | tee -a $LOG_FILE
+    fi
+}
+
+function s4_log {
+    if [ $VERBOSE -ne 0 ]; then
+        echo '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++' | tee -a $LOG_FILE
+    fi
+}
+
+function log {
+    echo -e "$*" | tee -a $LOG_FILE
+}
+
+function a_log {
+    tee -a $LOG_FILE
+}
+
+function v_log {
+    if [ $VERBOSE -eq 1 ]; then
+        echo -e "$*" | tee -a $LOG_FILE
+    fi
+}
+
+function vv_log {
+    if [ $VERBOSE -eq 2 ]; then
+        echo -e "$*" | tee -a $LOG_FILE
+    fi
+}
+
+function av_log {
+    if [ $VERBOSE -eq 1 ]; then
+        tee -a $LOG_FILE
+    fi
+}
+
+function avv_log {
+    if [ $VERBOSE -eq 2 ]; then
+        tee -a $LOG_FILE
+    fi
+}

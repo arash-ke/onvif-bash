@@ -1,0 +1,9 @@
+<s:Envelope xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">
+    $HEADER
+    <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">
+        <GetPresetTour xmlns=\"http://www.onvif.org/ver20/ptz/wsdl\">
+            <ProfileToken>$PROFILE_TOKEN</ProfileToken>
+            <PresetTourToken>$PRESET_TOUR_TOKEN</PresetTourToken>
+        </GetPresetTour>
+    </s:Body>
+</s:Envelope>

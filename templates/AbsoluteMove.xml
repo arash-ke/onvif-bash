@@ -1,0 +1,16 @@
+<s:Envelope xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">
+    $HEADER
+    <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">
+        <AbsoluteMove  xmlns=\"http://www.onvif.org/ver10/ptz/wsdl\">
+            <ProfileToken>$PROFILE_TOKEN</ProfileToken>
+            <Position>
+                <PanTilt x=\"$POSITION_X\" y=\"$POSITION_Y\" space=\"http://www.onvif.org/ver10/tptz/PanTiltSpaces/PositionGenericSpace\" xmlns=\"http://www.onvif.org/ver10/schema\"/>
+                <Zoom x=\"$ZOOM_X\" xmlns=\"http://www.onvif.org/ver10/schema\"/>
+            </Position>
+            <Speed>
+                <PanTilt x=\"1\" y=\"1\" xmlns=\"http://www.onvif.org/ver10/schema\"/>
+                <Zoom x=\"1\" xmlns=\"http://www.onvif.org/ver10/schema\"/>
+            </Speed>
+        </AbsoluteMove>
+    </s:Body>
+</s:Envelope>
